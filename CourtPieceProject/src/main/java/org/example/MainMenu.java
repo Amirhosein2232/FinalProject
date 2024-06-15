@@ -4,8 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Scanner;
 
 public class MainMenu extends JFrame implements ActionListener {
+    String currentUserName;
+    Socket socket;
+    DataInputStream inputStream;
+    DataOutputStream outputStream;
     JPanel mainPanel;
     JButton newGame;
     JButton accounts;
@@ -35,8 +44,8 @@ public class MainMenu extends JFrame implements ActionListener {
     JLabel possibleError2;
     JButton insert2;
     JButton cancel2;
-    public MainMenu() {
-
+    public MainMenu(Socket socket) {
+        this.socket = socket;
         mainPanel = new JPanel();
         mainPanel.setSize(new Dimension(400,400));
         mainPanel.setLayout(null);
@@ -164,10 +173,47 @@ public class MainMenu extends JFrame implements ActionListener {
         this.add(signUpPanel);
         this.add(signInPanel);
     }
-    public void getEntries() {
+    public boolean send_recieve(String operation, String userName, String password) {
+        boolean response = true;
         try {
-            
+            inputStream = new DataInputStream(socket.getInputStream());
+            outputStream = new DataOutputStream(socket.getOutputStream());
+
+            outputStream.writeUTF(operation + " " + userName + " " + password);
+            outputStream.flush();
+
+            response = inputStream.readBoolean();
+            try {
+                outputStream.close();
+                inputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } catch (Exception e) {
+            System.out.println("Error : failed to connect.");
         }
+        return response;
+    }
+    public void sendInfo(String operation) {
+        String userName = "";
+        String password = "";
+        boolean response = true;
+        try {
+            userName = nameTextField1.getText();
+            password = passwordTextField1.getText();
+        } catch (Exception e) {
+            System.out.println("error : could not get entries.");
+        }
+        if (send_recieve(operation, userName, password)) {
+            currentUserName = userName;
+            newGame.setEnabled(true);
+            signIn.setEnabled(false);
+            signUp.setEnabled(false);
+            deleteAccount.setEnabled(true);
+        }
+    }
+    public void getEntries() {
+
     }
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -188,13 +234,17 @@ public class MainMenu extends JFrame implements ActionListener {
         } else if (e.getSource() == deleteAccount) {
             System.out.println("deleted");
         } else if (e.getSource() == insert1) {
-
+            sendInfo("signUp");
         } else if (e.getSource()== cancel1) {
+            nameTextField1.setText("");
+            passwordTextField1.setText("");
             signUpPanel.setVisible(false);
             accountsPanel.setVisible(true);
         } else if (e.getSource() == insert2) {
 
         } else if (e.getSource() == cancel2) {
+            nameTextField2.setText("");
+            passwordTextField2.setText("");
             signInPanel.setVisible(false);
             accountsPanel.setVisible(true);
         }

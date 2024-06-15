@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Scanner;
-
+//This class is about storing and recovering data
 public class TemporaryFileStorage {
     File file = new File("Temporary_Storage.txt");
     HashMap<String,String> userName_password = new HashMap<>();
