@@ -44,8 +44,12 @@ public class MainMenu extends JFrame implements ActionListener {
     JLabel possibleError2;
     JButton insert2;
     JButton cancel2;
-    public MainMenu(Socket socket) {
+    public MainMenu(Socket socket, DataInputStream inputStream, DataOutputStream outputStream) {
+
         this.socket = socket;
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
+
         mainPanel = new JPanel();
         mainPanel.setSize(new Dimension(400,400));
         mainPanel.setLayout(null);
@@ -176,19 +180,8 @@ public class MainMenu extends JFrame implements ActionListener {
     public boolean send_recieve(String operation, String userName, String password) {
         boolean response = true;
         try {
-            inputStream = new DataInputStream(socket.getInputStream());
-            outputStream = new DataOutputStream(socket.getOutputStream());
-
             outputStream.writeUTF(operation + " " + userName + " " + password);
-            outputStream.flush();
-
             response = inputStream.readBoolean();
-            try {
-                outputStream.close();
-                inputStream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         } catch (Exception e) {
             System.out.println("Error : failed to connect.");
         }
@@ -206,6 +199,7 @@ public class MainMenu extends JFrame implements ActionListener {
         }
         if (send_recieve(operation, userName, password)) {
             currentUserName = userName;
+            System.out.println(currentUserName);
             newGame.setEnabled(true);
             signIn.setEnabled(false);
             signUp.setEnabled(false);

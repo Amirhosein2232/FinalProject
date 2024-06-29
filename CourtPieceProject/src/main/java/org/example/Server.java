@@ -6,7 +6,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    ServerSocket serverSocket;
+    ServerSocket serverSocket = null;
     public Server(int port) {
         System.out.println("Creating server...");
         try {
@@ -14,6 +14,7 @@ public class Server {
         } catch (Exception e) {
             System.out.println("Error : failed to create server.");
         }
+        System.out.println("Server created.");
         while (true) {
             Socket socket = null;
             try {
@@ -28,13 +29,14 @@ public class Server {
                 t.start();
 
             } catch (Exception e) {
-                try {
-                    socket.close();
-                } catch (Exception x) {
-                    System.out.println("Error : failed to close connection.");
-                }
+                e.printStackTrace();
             }
         }
+        /*try {
+            serverSocket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
     }
     public static void main(String[] args) {
         Server server = new Server(9090);

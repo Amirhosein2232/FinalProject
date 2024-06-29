@@ -41,6 +41,7 @@ public class GameplayMechanics {
     //This method allows the starting player to choose the "table card" and then let others put their cards in order
     public String turn(String ruleCard) {
         String tableCard = "";
+        return  tableCard;
     }
     //First the ruler must choose the ruling card and then the game begins
     public String game() {
@@ -48,5 +49,6 @@ public class GameplayMechanics {
         for(int i=0 ; i<7 ; i++) {
             turn(ruleCard);
         }
+        return  ruleCard;
     }
 }

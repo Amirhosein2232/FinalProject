@@ -15,28 +15,27 @@ public class ClientHandler extends Thread {
     }
     @Override
     public void run() {
-        while (true) {
-            String receivedMessage;
-            try {
-                receivedMessage = inputStream.readUTF();
-                System.out.println(receivedMessage);
-                if (receivedMessage.equals("signUp amir 1234")) {
+        try {
+            String recieved = "";
+            while (!recieved.equalsIgnoreCase("exit")) {
+                recieved = inputStream.readUTF();
+                System.out.println(recieved);
+                if (recieved.equalsIgnoreCase("signup amir 1234")) {
                     outputStream.writeBoolean(true);
-                    outputStream.flush();
                 } else {
                     outputStream.writeBoolean(false);
-                    outputStream.flush();
                 }
-            } catch (Exception e) {
-                System.out.println("Error : failed to get message.");
             }
-            try {
-                inputStream.close();
-                outputStream.close();
-                socket.close();
-            } catch (Exception e) {
-                System.out.println("Error : failed to close connection.");
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            socket.close();
+            inputStream.close();
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
 }
