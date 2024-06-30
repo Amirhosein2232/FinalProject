@@ -3,12 +3,15 @@ package org.example;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Scanner;
 //This class is about storing and recovering data
 public class TemporaryFileStorage {
     File file = new File("Temporary_Storage.txt");
-    HashMap<String,String> userName_password = new HashMap<>();
+    public static HashMap<String,String> userName_password = new HashMap<>();
     public void writeFile(String userName, String password) {
         try {
             FileWriter writer = new FileWriter(file,true);
@@ -20,6 +23,9 @@ public class TemporaryFileStorage {
     }
     public void readeFile() {
         try {
+            if (!file.exists()) {
+                file.createNewFile();
+            }
             FileReader reader = new FileReader(file);
             Scanner sc = new Scanner(file);
             while (sc.hasNextLine()) {
@@ -43,4 +49,19 @@ public class TemporaryFileStorage {
         writeFile(userName, password);
         userName_password.put(userName,password);
     }
+    public String passwordEncoder(String password) {
+        MessageDigest digest = null;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+        String encoded = "";
+        for (byte i : encodedhash) {
+            encoded = encoded + i;
+        }
+        return encoded;
+    }
+
 }

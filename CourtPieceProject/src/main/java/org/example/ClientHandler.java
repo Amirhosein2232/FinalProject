@@ -3,8 +3,11 @@ package org.example;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ClientHandler extends Thread {
+    OperationMethods methods = new OperationMethods();
     Socket socket;
     DataInputStream inputStream;
     DataOutputStream outputStream;
@@ -15,16 +18,12 @@ public class ClientHandler extends Thread {
     }
     @Override
     public void run() {
+        String currentUsername = "";
         try {
             String recieved = "";
-            while (!recieved.equalsIgnoreCase("exit")) {
+            while (true) {
                 recieved = inputStream.readUTF();
-                System.out.println(recieved);
-                if (recieved.equalsIgnoreCase("signup amir 1234")) {
-                    outputStream.writeBoolean(true);
-                } else {
-                    outputStream.writeBoolean(false);
-                }
+                outputStream.writeBoolean(methods.executeOperation(recieved,currentUsername));
             }
         } catch (Exception e) {
             e.printStackTrace();
