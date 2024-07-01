@@ -22,6 +22,11 @@ public class Client {
         MainMenu menu = new MainMenu(socket,inputStream,outputStream);
     }
     public static void main(String[] args) {
-        Client client = new Client("192.168.1.2",9090);
+        Client client = new Client("192.168.1.2", 9090);
+        Client client1 = new Client("192.168.1.2", 9090);
+        Client client2 = new Client("192.168.1.2", 9090);
+        Client client3 = new Client("192.168.1.2", 9090);
+        Client client4 = new Client("192.168.1.2", 9090);
+
     }
 }

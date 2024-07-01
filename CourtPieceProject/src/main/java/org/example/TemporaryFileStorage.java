@@ -6,13 +6,15 @@ import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 //This class is about storing and recovering data
 public class TemporaryFileStorage {
-    File file = new File("Temporary_Storage.txt");
+    File file = new File("playerInfo.txt");
+    File lobbyList = new File("lobbyGameList.txt");
     public static HashMap<String,String> userName_password = new HashMap<>();
-    public void writeFile(String userName, String password) {
+    public void writeFilePlayer(String userName, String password) {
         try {
             FileWriter writer = new FileWriter(file,true);
             writer.write( userName + "\n" + password + "\n" );
@@ -21,7 +23,39 @@ public class TemporaryFileStorage {
             System.out.println("error : failed to write the file");
         }
     }
-    public void readeFile() {
+    public void writeFileLobbyList(ArrayList<Game> games) {
+        try {
+            if (!lobbyList.exists()) {
+                lobbyList.createNewFile();
+            }
+            FileWriter writer = new FileWriter(lobbyList);
+            for (int i=0 ; i< games.size() ; i++) {
+                writer.write(games.get(i).gameID + " created by : " + games.get(i).players.get(0) + " " + games.get(i).players.size() + "/" + 4 + "\n");
+            }
+            writer.close();
+        }catch (Exception e) {
+            System.out.println("error : failed to write the file");
+        }
+    }
+    public String readFileLobbyList() {
+        String gameList = "";
+        try {
+            if (!lobbyList.exists()) {
+                lobbyList.createNewFile();
+            }
+            FileReader reader = new FileReader(lobbyList);
+            Scanner sc = new Scanner(lobbyList);
+            while (sc.hasNextLine()) {
+                String str = sc.nextLine();
+                gameList = gameList + str + "|";
+            }
+            reader.close();
+        }catch (Exception e) {
+            System.out.println("error : failed to read the file");
+        }
+        return gameList;
+    }
+    public void readeFilePlayer() {
         try {
             if (!file.exists()) {
                 file.createNewFile();
@@ -38,7 +72,7 @@ public class TemporaryFileStorage {
             System.out.println("error : failed to read the file");
         }
     }
-    public void fileEntry(String userName, String password) {
+    public void fileEntryPlayer(String userName, String password) {
         try {
             if (!file.exists()) {
                 file.createNewFile();
@@ -46,7 +80,7 @@ public class TemporaryFileStorage {
         }catch (Exception e) {
             System.out.println("error : failed to create new file");
         }
-        writeFile(userName, password);
+        writeFilePlayer(userName, password);
         userName_password.put(userName,password);
     }
     public String passwordEncoder(String password) {

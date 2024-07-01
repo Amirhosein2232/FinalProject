@@ -16,6 +16,7 @@ public class MainMenu extends JFrame implements ActionListener {
     DataInputStream inputStream;
     DataOutputStream outputStream;
     JPanel mainPanel;
+    JButton exit;
     JButton newGame;
     JButton joinGame;
     JButton accounts;
@@ -72,10 +73,15 @@ public class MainMenu extends JFrame implements ActionListener {
         accounts.setBounds(10,250,100,50);
         accounts.addActionListener(this);
 
+        exit = new JButton("Exit");
+        exit.setBounds(10,325,100,50);
+        exit.addActionListener(this);
+
         mainPanel.add(title);
         mainPanel.add(newGame);
         mainPanel.add(joinGame);
         mainPanel.add(accounts);
+        mainPanel.add(exit);
         ////////////////////////////////////////////////////////////////////
         accountsPanel = new JPanel();
         accountsPanel.setSize(new Dimension(400,400));
@@ -280,10 +286,23 @@ public class MainMenu extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == newGame) {
-            this.setVisible(false);
-            GameLobby lobby = new GameLobby(socket,inputStream,outputStream,false);
+            try {
+                outputStream.writeUTF("create " + currentUserName + " |");
+                if (inputStream.readBoolean()) {
+                    this.setVisible(false);
+                    GameLobby lobby = new GameLobby(currentUserName,socket,inputStream,outputStream,false);
+                }
+            } catch (Exception t) {
+                t.printStackTrace();
+            }
         } else if (e.getSource() == joinGame) {
-
+            this.setVisible(false);
+            try {
+                outputStream.writeUTF("join");
+            } catch (Exception t) {
+                t.printStackTrace();
+            }
+            GameLobby lobby = new GameLobby(currentUserName,socket,inputStream,outputStream,true);
         } else if (e.getSource() == accounts) {
             mainPanel.setVisible(false);
             accountsPanel.setVisible(true);

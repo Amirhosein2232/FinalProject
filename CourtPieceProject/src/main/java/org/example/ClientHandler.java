@@ -11,6 +11,8 @@ public class ClientHandler extends Thread {
     Socket socket;
     DataInputStream inputStream;
     DataOutputStream outputStream;
+    Pattern create = Pattern.compile("^create");
+    Pattern join = Pattern.compile("^join");
     public ClientHandler(Socket socket, DataInputStream inputStream, DataOutputStream outputStream) {
         this.socket = socket;
         this.inputStream = inputStream;
@@ -18,12 +20,18 @@ public class ClientHandler extends Thread {
     }
     @Override
     public void run() {
-        String currentUsername = "";
         try {
+
             String recieved = "";
-            while (true) {
+            while (recieved != "exit") {
                 recieved = inputStream.readUTF();
-                outputStream.writeBoolean(methods.executeOperation(recieved,currentUsername));
+                Matcher matcherCreate = create.matcher(recieved);
+                Matcher matcherJoin = join.matcher(recieved);
+                if (matcherCreate.find() || matcherJoin.find()) {
+                    GameManager manager = new GameManager(recieved, socket, inputStream, outputStream);
+                }else {
+                    outputStream.writeBoolean(methods.executeOperation(recieved));
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -9,7 +9,7 @@ public class Server {
     TemporaryFileStorage storage = new TemporaryFileStorage();
     ServerSocket serverSocket = null;
     public Server(int port) {
-        storage.readeFile();
+        storage.readeFilePlayer();
         System.out.println("Creating server...");
         try {
             serverSocket = new ServerSocket(port);
