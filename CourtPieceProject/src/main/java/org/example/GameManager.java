@@ -15,14 +15,15 @@ public class GameManager {
     public static Integer gameID = 1000;
     public static ArrayList<Game> games = new ArrayList<>();
     public void gameGenerator(String creator) {
-        Game game = new Game(gameID,creator);
+        Game game = new Game(gameID);
         games.add(game);
         gameID++;
         try {
-            outputStream.writeBoolean(true);
+            outputStream.writeBoolean(game.joinGame(creator,socket,inputStream,outputStream));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        game.startGame();
     }
     public String getUserName(String recieved) {
         int index1 = recieved.indexOf(" ");
@@ -37,18 +38,25 @@ public class GameManager {
         return gameID;
     }
     public void selectGame(String username, String gameId) {
-        boolean answear = false;
         for (Game game : games) {
-            if (game.gameID.equals(gameId) && game.players.size() < 4) {
-                game.players.add(username);
-                answear = true;
-                break;
+            if (game.gameID.equals(gameId)) {
+                if (game.players.size() < 4) {
+                    game.joinGame(username, socket, inputStream, outputStream);
+                    try {
+                        outputStream.writeBoolean(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    game.startGame();
+                    break;
+                } else {
+                    try {
+                        outputStream.writeBoolean(false);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }
-        try {
-            outputStream.writeBoolean(answear);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
     public void refreshList() {

@@ -290,7 +290,10 @@ public class MainMenu extends JFrame implements ActionListener {
                 outputStream.writeUTF("create " + currentUserName + " |");
                 if (inputStream.readBoolean()) {
                     this.setVisible(false);
-                    GameLobby lobby = new GameLobby(currentUserName,socket,inputStream,outputStream,false);
+                    //GameFrame gameFrame = new GameFrame(currentUserName,socket,inputStream,outputStream);
+                    //gameFrame.listen();
+                    GameFrameHandler gameFrameHandler = new GameFrameHandler(currentUserName,socket,inputStream,outputStream);
+                    gameFrameHandler.start();
                 }
             } catch (Exception t) {
                 t.printStackTrace();

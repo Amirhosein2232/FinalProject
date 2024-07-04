@@ -39,19 +39,15 @@ public class OperationMethods {
         Pattern signUp = Pattern.compile("signUp\\s(.){1,}\\s(.){1,}");
         Pattern signIn = Pattern.compile("signIn\\s(.){1,}\\s(.){1,}");
         Pattern exitAccount = Pattern.compile("exitAccount\\s(.){1,}\\s(.){1,}");
-        Pattern create = Pattern.compile("create\\s(.){1,}");
         Matcher matcherUp = signUp.matcher(recieved);
         Matcher matcherIn = signIn.matcher(recieved);
         Matcher matcherExit = exitAccount.matcher(recieved);
-        Matcher matcherCreate = create.matcher(recieved);
         if (matcherUp.matches()) {
             return "signUp";
         } else if (matcherIn.matches()) {
             return "signIn";
         } else if (matcherExit.matches()) {
             return "exit";
-        } else if (matcherCreate.matches()) {
-            return "create";
         } else {
             return "noMatch";
         }
@@ -68,8 +64,6 @@ public class OperationMethods {
                 break;
             case "exit":
                 answear = true;
-                break;
-            case "create" :
                 break;
             default:
                 answear = false;

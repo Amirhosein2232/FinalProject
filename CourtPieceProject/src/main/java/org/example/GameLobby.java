@@ -116,9 +116,14 @@ public class GameLobby extends JFrame implements ActionListener {
             if (checkEntry(gameID)) {
                 outputStream.writeUTF("select " + currentUserName + " " + gameID);
                 if (inputStream.readBoolean()) {
-                    possibleError.setText("Joined game successfully : " + gameID);
-                    select.setEnabled(false);
-                    textField.setEnabled(false);
+                    //possibleError.setText("Joined game successfully : " + gameID);
+                    //select.setEnabled(false);
+                    //textField.setEnabled(false);
+                    this.setVisible(false);
+                    //GameFrame gameFrame = new GameFrame(currentUserName,socket,inputStream,outputStream);
+                    //gameFrame.listen();
+                    GameFrameHandler gameFrameHandler = new GameFrameHandler(currentUserName,socket,inputStream,outputStream);
+                    gameFrameHandler.start();
                 } else {
                     possibleError.setText("Error : Unable to join game");
                 }

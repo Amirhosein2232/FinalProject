@@ -18,9 +18,8 @@ public class Server {
         }
         System.out.println("Server created.");
         while (true) {
-            Socket socket = null;
             try {
-                socket = serverSocket.accept();
+                Socket socket = serverSocket.accept();
                 System.out.println("A new client has established connection : " + socket);
 
                 DataInputStream inputStream = new DataInputStream(socket.getInputStream());
@@ -29,7 +28,6 @@ public class Server {
                 System.out.println("Assigning new thread for new client.");
                 Thread t = new ClientHandler(socket,inputStream,outputStream);
                 t.start();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
