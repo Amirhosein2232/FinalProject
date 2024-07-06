@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +14,9 @@ import java.util.regex.Pattern;
 public class GameFrame extends JFrame implements ActionListener {
     public HashMap<String,Icon> cardIcons = new HashMap<>();
     String currentUserName;
+    Socket socket;
+    DataInputStream inputStream;
+    DataOutputStream outputStream;
     JLabel player1;
     JLabel card1;
     JLabel turn1;
@@ -25,20 +29,30 @@ public class GameFrame extends JFrame implements ActionListener {
     JLabel player4;
     JLabel card4;
     JLabel turn4;
+    JLabel ruler1;
+    JLabel ruler2;
+    JLabel ruler3;
+    JLabel ruler4;
     JLabel serverMessage;
+    JLabel myCards;
     JLabel possibleError;
+    JLabel rulerCard;
     JButton insert;
     JTextField textField;
     JLabel[] players;
     JLabel[] cards;
     JLabel[] turns;
 
-    public GameFrame(String currentUserName) {
+    public GameFrame(String currentUserName, Socket socket, DataInputStream inputStream, DataOutputStream outputStream) {
         this.currentUserName = currentUserName;
+        this.socket = socket;
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
 
         ImageIcon defaultCard = new ImageIcon("Default.PNG");
         ImageIcon arrow = new ImageIcon("Arrow.PNG");
         cardIcons.put("DFT",defaultCard);
+        ImageIcon rulerIcon = new ImageIcon("Ruler.PNG");
 
         player1 = new JLabel("player1");
         player1.setBounds(50,0,100,50);
@@ -49,6 +63,10 @@ public class GameFrame extends JFrame implements ActionListener {
         turn1.setBounds(50,280,70,70);
         turn1.setIcon(arrow);
         turn1.setVisible(false);
+        ruler1 = new JLabel();
+        ruler1.setBounds(120,280,70,70);
+        ruler1.setIcon(rulerIcon);
+        ruler1.setVisible(false);
 
         player2 = new JLabel("player2");
         player2.setBounds(250,0,100,50);
@@ -59,6 +77,10 @@ public class GameFrame extends JFrame implements ActionListener {
         turn2.setBounds(250,280,70,70);
         turn2.setIcon(arrow);
         turn2.setVisible(false);
+        ruler2 = new JLabel();
+        ruler2.setBounds(320,280,70,70);
+        ruler2.setIcon(rulerIcon);
+        ruler2.setVisible(false);
 
         player3 = new JLabel("player3");
         player3.setBounds(450,0,100,50);
@@ -69,6 +91,10 @@ public class GameFrame extends JFrame implements ActionListener {
         turn3.setBounds(450,280,70,70);
         turn3.setIcon(arrow);
         turn3.setVisible(false);
+        ruler3 = new JLabel();
+        ruler3.setBounds(520,280,70,70);
+        ruler3.setIcon(rulerIcon);
+        ruler3.setVisible(false);
 
         player4 = new JLabel("player4");
         player4.setBounds(650,0,100,50);
@@ -79,7 +105,10 @@ public class GameFrame extends JFrame implements ActionListener {
         turn4.setBounds(650,280,70,70);
         turn4.setIcon(arrow);
         turn4.setVisible(false);
-
+        ruler4 = new JLabel();
+        ruler4.setBounds(720,280,70,70);
+        ruler4.setIcon(rulerIcon);
+        ruler4.setVisible(false);
 
         players = new JLabel[4];
         players[0] = player1;
@@ -99,6 +128,23 @@ public class GameFrame extends JFrame implements ActionListener {
         turns[2] = turn3;
         turns[3] = turn4;
 
+        serverMessage = new JLabel();
+        serverMessage.setBounds(50,350,300,50);
+        myCards = new JLabel();
+        myCards.setBounds(50,400,500,50);
+        possibleError = new JLabel();
+        possibleError.setBounds(50,450,200,50);
+        possibleError.setText("///////////////////////////////");
+        textField = new JTextField();
+        textField.setBounds(50,500,200,50);
+        textField.setEnabled(false);
+        insert = new JButton("Insert");
+        insert.setBounds(250,500,100,50);
+        insert.addActionListener(this);
+        insert.setEnabled(false);
+        rulerCard = new JLabel();
+        rulerCard.setBounds(300,500,150,50);
+
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(null);
         this.setSize(850,800);
@@ -117,7 +163,16 @@ public class GameFrame extends JFrame implements ActionListener {
         this.add(turn2);
         this.add(turn3);
         this.add(turn4);
-
+        this.add(ruler1);
+        this.add(ruler2);
+        this.add(ruler3);
+        this.add(ruler4);
+        this.add(serverMessage);
+        this.add(myCards);
+        this.add(possibleError);
+        this.add(textField);
+        this.add(insert);
+        this.add(rulerCard);
     }
     public void refresh(String recieved) {
         recieved = recieved.substring(recieved.indexOf(" ")+1);
@@ -126,8 +181,6 @@ public class GameFrame extends JFrame implements ActionListener {
         String cardNames = recieved.substring(0,recieved.indexOf(" "));
         recieved = recieved.substring(recieved.indexOf(" ")+1);
         String turnName = recieved.substring(0,recieved.indexOf(" "));
-        recieved = recieved.substring(recieved.indexOf(" ")+1);
-        String enabled = recieved.substring(0,recieved.length());
         for (int i=0 ; i<4 ; i++) {
             if (labelNames.contains("#")) {
                 System.out.println(labelNames.substring(0, labelNames.indexOf("#")));
@@ -144,13 +197,13 @@ public class GameFrame extends JFrame implements ActionListener {
                 System.out.println(cardNames);
             }
         }
-        /*for (Integer i=0 ; i<4 ; i++) {
+        for (Integer i=0 ; i<4 ; i++) {
             if (i.toString().equals(turnName)) {
                 turns[i].setVisible(true);
             } else {
                 turns[i].setVisible(false);
             }
-        }*/
+        }
         /*if (enabled.equals("true")) {
             insert.setEnabled(true);
             textField.setEnabled(true);
@@ -159,17 +212,87 @@ public class GameFrame extends JFrame implements ActionListener {
             textField.setEnabled(false);
         }*/
     }
-    public String operationType(String recieved) {
-        Pattern refresh = Pattern.compile("refresh");
+    public void showRuler(String recievded) {
+        char a = recievded.charAt(6);
+        switch (a) {
+            case '0':
+                ruler1.setVisible(true);
+                break;
+            case '1':
+                ruler2.setVisible(true);
+                break;
+            case '2':
+                ruler3.setVisible(true);
+                break;
+            case '3':
+                ruler4.setVisible(true);
+                break;
+        }
+    }
+    public void showError(String recieved) {
+        possibleError.setText(recieved);
+        textField.setEnabled(true);
+        insert.setEnabled(true);
+    }
+    public void setMyCards(String recieved) {
+        myCards.setText(recieved);
+        System.out.println(recieved);
+    }
+    public void operationType(String recieved) {
+        Pattern refresh = Pattern.compile("^refresh");
         Matcher matcherRefresh = refresh.matcher(recieved);
+        Pattern ruler = Pattern.compile("ruler [0-3]");
+        Matcher matcherRuler = ruler.matcher(recieved);
+        Pattern error = Pattern.compile("error : (.)+");
+        Matcher matcherError = error.matcher(recieved);
+        Pattern yourCards = Pattern.compile("^Your cards : ");
+        Matcher matcherYourCards = yourCards.matcher(recieved);
+        Pattern ruleCard = Pattern.compile("^rule card : ");
+        Matcher matcherRuleCard = ruleCard.matcher(recieved);
         if (matcherRefresh.find()) {
             refresh(recieved);
+        } else if (matcherRuler.matches()) {
+            showRuler(recieved);
+        } else if (matcherError.matches()) {
+            System.out.println(recieved);
+            showError(recieved);
+        } else if (matcherYourCards.find()) {
+            setMyCards(recieved);
+        } else if (matcherRuleCard.find()) {
+            rulerCard.setText(recieved);
         }
-        return "true";
+    }
+    public void getCommand() {
+        try {
+            String recieved;
+            recieved = inputStream.readUTF();
+            operationType(recieved);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     @Override
     public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == insert) {
+            try {
+                String card = "";
+                Pattern pattern = Pattern.compile("([0-1][0-9][A-Z]{2}|[A-Z]{4})");
+                Matcher matcher;
+                card = textField.getText();
+                matcher = pattern.matcher(card);
+                if (matcher.matches()) {
+                    textField.setEnabled(false);
+                    insert.setEnabled(false);
+                    System.out.println(card);
+                    outputStream.writeUTF(card);
+                } else {
+                    showError("error : unacceptable entry");
+                }
 
+            } catch (Exception t) {
+                t.printStackTrace();
+            }
+        }
     }
 
 }

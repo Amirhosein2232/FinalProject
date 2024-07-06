@@ -38,25 +38,22 @@ public class GameManager {
         return gameID;
     }
     public void selectGame(String username, String gameId) {
+        boolean answear = false;
+        Game g1 = null;
         for (Game game : games) {
-            if (game.gameID.equals(gameId)) {
-                if (game.players.size() < 4) {
-                    game.joinGame(username, socket, inputStream, outputStream);
-                    try {
-                        outputStream.writeBoolean(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    game.startGame();
-                    break;
-                } else {
-                    try {
-                        outputStream.writeBoolean(false);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
+            if (game.gameID.equals(gameId) && game.players.size() < 4) {
+                answear = game.joinGame(username, socket, inputStream, outputStream);
+                g1 = game;
+                break;
             }
+        }
+        try {
+            outputStream.writeBoolean(answear);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (answear) {
+            g1.startGame();
         }
     }
     public void refreshList() {

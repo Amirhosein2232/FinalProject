@@ -11,17 +11,16 @@ public class Game {
     ArrayList<Socket> sockets = new ArrayList<>();
     ArrayList<DataOutputStream> outputStreams = new ArrayList<>();
     ArrayList<DataInputStream> inputStreams = new ArrayList<>();
-    public String refresh(String enabled) {
+    public String refresh() {
         String labelNames = "";
         String cardNames = "";
-        Integer i = players.size();
+        Integer i = players.size() - 1;
         String turnNames = i.toString();
         for (String player : players) {
             labelNames = labelNames + player + "#";
             cardNames = cardNames + "DFT#";
         }
-        System.out.println("refresh " + labelNames + " " + cardNames + " " + turnNames + " " + enabled);
-        return "refresh " + labelNames + " " + cardNames + " " + turnNames + " " + enabled;
+        return "refresh " + labelNames + " " + cardNames + " " + turnNames + " |";
     }
     public boolean joinGame(String username, Socket socket, DataInputStream inputStream, DataOutputStream outputStream) {
         if (players.size() < 4) {
@@ -36,7 +35,6 @@ public class Game {
     }
     public void startGame() {
         try {
-            String recieved = "";
             /*while (true) {
                 recieved = inputStreams.get(players.indexOf(username)).readUTF();
                 if (recieved.equals("refresh")) {
@@ -50,12 +48,14 @@ public class Game {
                 System.out.println(inputStreams.get(players.indexOf(player)).readUTF());
                 System.out.println("s3");
             }*/
-            for (int i=0 ; i<players.size() ; i++) {
-                outputStreams.get(i).writeUTF(refresh("false"));
-                //System.out.println(inputStreams.get(i).readUTF());
+            for (String player : players) {
+                outputStreams.get(players.indexOf(player)).writeUTF(refresh());
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        if (players.size() == 4) {
+            GameplayMechanics gameplayMechanics = new GameplayMechanics(players,sockets,inputStreams,outputStreams);
         }
     }
     public Game(Integer gameID) {
