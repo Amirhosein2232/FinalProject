@@ -12,7 +12,7 @@ public class Client {
         DataOutputStream outputStream = null;
         System.out.println("Connecting to server...");
         try {
-            socket = new Socket("localHost", 9090);
+            socket = new Socket(ip,port);
             inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
         } catch (Exception e) {
@@ -22,11 +22,9 @@ public class Client {
         MainMenu menu = new MainMenu(socket,inputStream,outputStream);
     }
     public static void main(String[] args) {
-        Client client = new Client("192.168.1.2", 9090);
-        Client client1 = new Client("192.168.1.2", 9090);
-        Client client2 = new Client("192.168.1.2", 9090);
-        Client client3 = new Client("192.168.1.2", 9090);
-        Client client4 = new Client("192.168.1.2", 9090);
-
+        Client client = new Client("localhost", 9090);
+        Client client1 = new Client("localhost", 9090);
+        Client client2 = new Client("localhost", 9090);
+        Client client3 = new Client("localhost", 9090);
     }
 }

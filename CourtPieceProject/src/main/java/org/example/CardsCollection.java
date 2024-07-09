@@ -1,11 +1,13 @@
 package org.example;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class CardsCollection {
     ArrayList<String> allCards = new ArrayList<>();
     HashMap<String,Integer> cardsValue = new HashMap<>();
+    HashMap<String, ImageIcon> cardIcon = new HashMap<>();
     public void prepareAllCards() {
         String[] roles = {"GZ","DL","KT","PK"};
         String[] level = {"02","03","04","05","06","07","08","09","10","JK","QN","KG","AC"};
@@ -26,5 +28,13 @@ public class CardsCollection {
             i++;
         }
         System.out.println(cardsValue);
+    }
+    public void setCardIcon() {
+        for (String card : allCards) {
+            ImageIcon icon = new ImageIcon(card+".PNG");
+            cardIcon.put(card,icon);
+        }
+        ImageIcon icon = new ImageIcon("DFT.PNG");
+        cardIcon.put("DFT",icon);
     }
 }

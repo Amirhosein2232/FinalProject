@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Game {
     String gameID = "1";
@@ -34,25 +35,12 @@ public class Game {
         }
     }
     public void startGame() {
-        try {
-            /*while (true) {
-                recieved = inputStreams.get(players.indexOf(username)).readUTF();
-                if (recieved.equals("refresh")) {
-                    outputStreams.get(players.indexOf(username)).writeUTF(refresh(recieved));
-                }
-            }*/
-            /*for (String player : players) {
-                System.out.println("s1");
-                outputStreams.get(players.indexOf(player)).writeUTF(refresh("false"));
-                System.out.println("s2");
-                System.out.println(inputStreams.get(players.indexOf(player)).readUTF());
-                System.out.println("s3");
-            }*/
-            for (String player : players) {
-                outputStreams.get(players.indexOf(player)).writeUTF(refresh());
+        for (int i=0 ; i<players.size() ; i++) {
+            try {
+                outputStreams.get(i).writeUTF(refresh());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         if (players.size() == 4) {
             GameplayMechanics gameplayMechanics = new GameplayMechanics(players,sockets,inputStreams,outputStreams);

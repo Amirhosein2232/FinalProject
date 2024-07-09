@@ -106,6 +106,7 @@ public class GameManager {
             String recieved = "";
             while (true) {
                 recieved = inputStream.readUTF();
+                System.out.println(recieved);
                 executeOperation(recieved);
             }
         } catch (Exception e) {

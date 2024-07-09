@@ -292,7 +292,7 @@ public class MainMenu extends JFrame implements ActionListener {
                     this.setVisible(false);
                     //GameFrame gameFrame = new GameFrame(currentUserName,socket,inputStream,outputStream);
                     //gameFrame.listen();
-                    GameFrameHandler gameFrameHandler = new GameFrameHandler(currentUserName,socket,inputStream,outputStream);
+                    Thread gameFrameHandler = new GameFrameHandler(currentUserName,socket,inputStream,outputStream);
                     gameFrameHandler.start();
                 }
             } catch (Exception t) {

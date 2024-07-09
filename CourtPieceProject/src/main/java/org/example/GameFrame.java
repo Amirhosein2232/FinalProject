@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,11 +13,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GameFrame extends JFrame implements ActionListener {
-    public HashMap<String,Icon> cardIcons = new HashMap<>();
+    HashMap<String,ImageIcon> cardIcons = new HashMap<>();
+    CardsCollection collection = new CardsCollection();
     String currentUserName;
-    Socket socket;
-    DataInputStream inputStream;
-    DataOutputStream outputStream;
+    Socket socket = null;
+    DataInputStream inputStream = null;
+    DataOutputStream outputStream = null;
     JLabel player1;
     JLabel card1;
     JLabel turn1;
@@ -38,6 +40,8 @@ public class GameFrame extends JFrame implements ActionListener {
     JLabel possibleError;
     JLabel rulerCard;
     JButton insert;
+    JLabel team1;
+    JLabel team2;
     JTextField textField;
     JLabel[] players;
     JLabel[] cards;
@@ -48,11 +52,12 @@ public class GameFrame extends JFrame implements ActionListener {
         this.socket = socket;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
-
-        ImageIcon defaultCard = new ImageIcon("Default.PNG");
         ImageIcon arrow = new ImageIcon("Arrow.PNG");
-        cardIcons.put("DFT",defaultCard);
         ImageIcon rulerIcon = new ImageIcon("Ruler.PNG");
+
+        collection.prepareAllCards();
+        collection.setCardIcon();
+        cardIcons = collection.cardIcon;
 
         player1 = new JLabel("player1");
         player1.setBounds(50,0,100,50);
@@ -143,7 +148,12 @@ public class GameFrame extends JFrame implements ActionListener {
         insert.addActionListener(this);
         insert.setEnabled(false);
         rulerCard = new JLabel();
-        rulerCard.setBounds(300,500,150,50);
+        rulerCard.setBounds(600,500,150,50);
+
+        team1 = new JLabel();
+        team1.setBounds(650,500,150,50);
+        team2 = new JLabel();
+        team2.setBounds(650,550,150,50);
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLayout(null);
@@ -173,6 +183,8 @@ public class GameFrame extends JFrame implements ActionListener {
         this.add(textField);
         this.add(insert);
         this.add(rulerCard);
+        this.add(team1);
+        this.add(team2);
     }
     public void refresh(String recieved) {
         recieved = recieved.substring(recieved.indexOf(" ")+1);
@@ -183,18 +195,14 @@ public class GameFrame extends JFrame implements ActionListener {
         String turnName = recieved.substring(0,recieved.indexOf(" "));
         for (int i=0 ; i<4 ; i++) {
             if (labelNames.contains("#")) {
-                System.out.println(labelNames.substring(0, labelNames.indexOf("#")));
                 players[i].setText(labelNames.substring(0, labelNames.indexOf("#")));
                 labelNames = labelNames.substring(labelNames.indexOf("#")+1);
-                System.out.println(labelNames);
             }
         }
         for (int i=0 ; i<4 ; i++) {
             if (cardNames.contains("#")) {
-                System.out.println(cardNames.substring(0, cardNames.indexOf("#")));
                 cards[i].setIcon(cardIcons.get(cardNames.substring(0, cardNames.indexOf("#"))));
                 cardNames = cardNames.substring(cardNames.indexOf("#")+1);
-                System.out.println(cardNames);
             }
         }
         for (Integer i=0 ; i<4 ; i++) {
@@ -204,13 +212,6 @@ public class GameFrame extends JFrame implements ActionListener {
                 turns[i].setVisible(false);
             }
         }
-        /*if (enabled.equals("true")) {
-            insert.setEnabled(true);
-            textField.setEnabled(true);
-        } else {
-            insert.setEnabled(false);
-            textField.setEnabled(false);
-        }*/
     }
     public void showRuler(String recievded) {
         char a = recievded.charAt(6);
@@ -236,37 +237,78 @@ public class GameFrame extends JFrame implements ActionListener {
     }
     public void setMyCards(String recieved) {
         myCards.setText(recieved);
-        System.out.println(recieved);
     }
-    public void operationType(String recieved) {
+    public String  operationType(String recieved) {
         Pattern refresh = Pattern.compile("^refresh");
         Matcher matcherRefresh = refresh.matcher(recieved);
         Pattern ruler = Pattern.compile("ruler [0-3]");
         Matcher matcherRuler = ruler.matcher(recieved);
-        Pattern error = Pattern.compile("error : (.)+");
+        Pattern error = Pattern.compile("^error");
         Matcher matcherError = error.matcher(recieved);
-        Pattern yourCards = Pattern.compile("^Your cards : ");
+        Pattern yourCards = Pattern.compile("^Your cards");
         Matcher matcherYourCards = yourCards.matcher(recieved);
-        Pattern ruleCard = Pattern.compile("^rule card : ");
+        Pattern ruleCard = Pattern.compile("^rule card");
         Matcher matcherRuleCard = ruleCard.matcher(recieved);
+        Pattern team1Score = Pattern.compile("^team 1 score");
+        Pattern team2Score = Pattern.compile("^team 2 score");
+        Matcher matcher1 = team1Score.matcher(recieved);
+        Matcher matcher2 = team2Score.matcher(recieved);
         if (matcherRefresh.find()) {
-            refresh(recieved);
+            System.out.println(currentUserName + ":" + recieved);
+            return "refresh";
         } else if (matcherRuler.matches()) {
-            showRuler(recieved);
-        } else if (matcherError.matches()) {
-            System.out.println(recieved);
-            showError(recieved);
+            System.out.println(currentUserName + ":" + recieved);
+            return "ruler";
+        } else if (matcherError.find()) {
+            System.out.println(currentUserName + ":" + recieved);
+            return "error";
         } else if (matcherYourCards.find()) {
-            setMyCards(recieved);
+            System.out.println(currentUserName + ":" + recieved);
+            return "yourCards";
         } else if (matcherRuleCard.find()) {
-            rulerCard.setText(recieved);
+            System.out.println(currentUserName + ":" + recieved);
+            return "ruleCard";
+        } else if (matcher1.find()) {
+            return "team1";
+        } else if (matcher2.find()) {
+            return "team2";
+        } else {
+            return "noMatch";
+        }
+    }
+    public void executeOperation(String recieved) {
+        String operation = operationType(recieved);
+        switch (operation) {
+            case "refresh":
+                refresh(recieved);
+                break;
+            case "ruler":
+                showRuler(recieved);
+                break;
+            case "error":
+                showError(recieved);
+                break;
+            case "yourCards":
+                setMyCards(recieved);
+                break;
+            case "ruleCard":
+                rulerCard.setText(recieved);
+                break;
+            case "team1":
+                team1.setText(recieved);
+                break;
+            case "team2":
+                team2.setText(recieved);
+                break;
+            default:
+                break;
         }
     }
     public void getCommand() {
         try {
-            String recieved;
-            recieved = inputStream.readUTF();
-            operationType(recieved);
+            String recieved = "";
+                recieved = inputStream.readUTF();
+                executeOperation(recieved);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -274,23 +316,21 @@ public class GameFrame extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == insert) {
-            try {
-                String card = "";
-                Pattern pattern = Pattern.compile("([0-1][0-9][A-Z]{2}|[A-Z]{4})");
-                Matcher matcher;
-                card = textField.getText();
-                matcher = pattern.matcher(card);
-                if (matcher.matches()) {
-                    textField.setEnabled(false);
-                    insert.setEnabled(false);
-                    System.out.println(card);
+            Pattern pattern = Pattern.compile("([0-1][0-9][A-Z]{2}|[A-Z]{4})");
+            Matcher matcher;
+            String card = textField.getText();
+            matcher = pattern.matcher(card);
+            if (matcher.matches()) {
+                try {
                     outputStream.writeUTF(card);
-                } else {
-                    showError("error : unacceptable entry");
+                } catch (Exception t) {
+                    t.printStackTrace();
                 }
-
-            } catch (Exception t) {
-                t.printStackTrace();
+                //textField.setEnabled(false);
+                //insert.setEnabled(false);
+                textField.setText("");
+                } else {
+                showError("error : unacceptable entry");
             }
         }
     }

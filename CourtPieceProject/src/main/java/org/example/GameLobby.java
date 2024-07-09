@@ -111,8 +111,8 @@ public class GameLobby extends JFrame implements ActionListener {
         return matcher.matches();
     }
     public void selectGame() {
+        String gameID = textField.getText();
         try {
-            String gameID = textField.getText();
             if (checkEntry(gameID)) {
                 outputStream.writeUTF("select " + currentUserName + " " + gameID);
                 if (inputStream.readBoolean()) {
@@ -122,7 +122,7 @@ public class GameLobby extends JFrame implements ActionListener {
                     this.setVisible(false);
                     //GameFrame gameFrame = new GameFrame(currentUserName,socket,inputStream,outputStream);
                     //gameFrame.listen();
-                    GameFrameHandler gameFrameHandler = new GameFrameHandler(currentUserName,socket,inputStream,outputStream);
+                    Thread gameFrameHandler = new GameFrameHandler(currentUserName, socket, inputStream, outputStream);
                     gameFrameHandler.start();
                 } else {
                     possibleError.setText("Error : Unable to join game");
